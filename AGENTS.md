@@ -44,7 +44,7 @@ Write the answers to `candidate.json`. Never infer referrals or prior employment
 
 ### 3. Research (web search required)
 
-Run these searches before judging c1, c2, c12, c13 and c14. Record every page you rely on in
+Run these searches before judging c1, c2, c12, c14 and c15. Record every page you rely on in
 `assessment.sources` (id, url, title, accessed date, and the exact supporting sentence):
 
 | For | Search for |
@@ -52,15 +52,13 @@ Run these searches before judging c1, c2, c12, c13 and c14. Record every page yo
 | c1 same industry | both companies' industry classification (SIC/NAICS, filings, company site, Crunchbase, Wikipedia) |
 | c1 competitor | "<hiring company> competitors", analyst and market reports |
 | c1 supplier | whether the candidate's employer supplies the hiring company (case studies, partner pages, press releases) |
-| c1 top firm | the market leader in the hiring company's industry, by revenue or share |
 | c1 headline | no search: compare the CV's headline or tagline with the JD title |
 | c2 quadrant | market growth rate for the segment, and the company's (or division's) share against its largest rival |
 | c2 hiring buzz | current news on how the employer is hiring: freezes, lay-offs, post-merger integration, a preference for industry insiders (raise strictness) or rapid hiring, new-market launches, appetite for outside talent (lower it). Adjustment -0.25 to +0.25, 0 with no evidence |
 | c12 expected tenure | the JD's stated expected tenure; otherwise typical tenure for the level at this employer or sector; otherwise default 3 years. Record which applied in `expected_years.from` |
-| c13 consulting | for each consulting-firm role on the CV: rankings of the top 10 consultancies serving the hiring company's industry (Consultancy.uk, Vault, Gartner, analyst reports), and whether the evidenced projects relate to this JD |
 | c14 conventional certifications | the certifications that screeners conventionally expect for this role family and country, even when the JD does not list them (for example PRINCE2, MSP or MoP for UK programme director roles). Related methods are not equivalents: DSDM is not PRINCE2 |
 | c14 conflict of interest | whether the candidate's current employer has a relationship with the hiring company that may need an independence or conflict check, for example being its external auditor |
-| c9 | the institution's status, if it is not obviously Oxbridge, Ivy League or Russell Group |
+| c15 elite indicators | for each indicator the CV evidences, a public source: the Gazette or official honours lists, Companies House and press for founder exits, university rankings (QS or THE top 100) and membership of Russell Group or Ivy League, scholarship lists, market share reports for the market leader in the hiring company's industry, consultancy rankings (Consultancy.uk, Vault) for top-10 firms, institution registers for fellowships and charters, bestseller lists, award bodies, Crunchbase, company filings, event programmes, patent offices and Google Scholar |
 | package and location (not scored) | salary benchmarks for the job title (for example IT Jobs Watch, Glassdoor, Levels.fyi, Hays or Robert Walters guides), the employer's and parent company's advertised bands for similar roles, the office address and real hybrid policy, and the employer's location strategy (regional hubs, a preference for hiring outside London). Record each comparable with its scope and date |
 
 Prefer primary and dated sources. If you cannot find evidence, write that down, mark the item
@@ -84,7 +82,7 @@ Specific care points:
 - **c12:** list every dated role, one entry per employer engagement, with `current: true` on the present role (it is excluded from the median unless it is the only one). Skip aggregated lines such as "Earlier Career: A, B, C, 2007 to 2018".
 - **c12 tags for c14:** on every `c12.roles` entry set `at_target_seniority` (the title is at the JD's level, for example "Director" or "Head of" for a director role) and `in_jd_sector` (the role sits in the JD's sector).
 - **c14:** fill `jd_basis` (`permanent`, `contract` or `unknown`) with a JD quote, list `contract_signals` with CV quotes, record `conventional_certs` (`applies`, `expected`, `held`, `not_equivalent`, with a cited source) and `conflict_of_interest` (`present`, `description`, with a cited source). Do not compute points: the script derives gaps, short roles, JD echo, seniority and sector from the dates, tags and text.
-- **c13:** set `top_in_industry` and `related_to_jd` per consulting role, each with evidence. `related_to_jd` only counts for a top-10 firm.
+- **c15:** record `education_institution` (the place named on the CV, whatever its tier, or null if none), then list each elite indicator the CV evidences. The allowed `type` values are `state_honour`, `founder_exit`, `university` (with `tier`: `oxbridge`, `ivy_league`, `russell_group`, `similar_top` or `other`), `elite_scholarship`, `elite_employer` (the market leader of the hiring company's industry, or a globally selective employer), `top_consultancy`, `fellowship_or_charter`, `bestselling_author`, `national_award`, `founder_backing`, `board_seat`, `major_keynote`, `patents_or_papers` and `national_sport_or_commission`. Each indicator needs a verbatim CV `quote`, a `label`, `related_to_jd` with a `relevance_note`, an optional `year`, and evidence. Each one needs a public source in `evidence.source_ids`: without one it is scored as unverified and counts for less. Do not list claims only the candidate can vouch for, such as internal ratings or fast promotions. This section scores perception, not merit: state the facts and do not argue for or against them.
 - **c2:** place the employer in a quadrant, cite growth and share, and record the hiring-buzz adjustment with its sources. Do not assess the candidate's risk appetite: that is no longer scored.
 - **c5:** describe signals, not verdicts. Never call a CV "AI-written".
 - **package:** fill the `package` object per `docs/evidence-format.md`. It is context only and never changes the score. Give at least two cited comparables before estimating a band, and say "not stated" for anything the JD does not publish.

@@ -253,3 +253,8 @@ mark { background: var(--accent-soft); color: var(--ink); padding: 1px 4px; bord
 .pk h4 { font: 600 12px var(--sans); text-transform: uppercase; letter-spacing: .08em; color: var(--ink-3); margin: 22px 0 8px; }
 .pk h4:first-child { margin-top: 0; }
 @media print { #package .panel { break-inside: avoid; } }
+
+/* c15 prior elite indicators */
+.elite-item { border-top: 1px solid var(--line); padding: 12px 0 4px; }
+.elite-item:first-of-type { border-top: 0; }
+.elite-item p { margin: 4px 0; }

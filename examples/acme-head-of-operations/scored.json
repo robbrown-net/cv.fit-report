@@ -10,23 +10,21 @@
   "weights_used": {
     "core": {
       "c1_current_role": 50,
-      "c3_tools_years": 5.5555556,
-      "c4_ai_experience": 5.5555556,
-      "c5_ai_generated": 5.5555556,
-      "c6_spelling": 5.5555556,
-      "c7_grammar": 5.5555556,
-      "c8_star_par": 5.5555556,
-      "c9_top_university": 5.5555556,
-      "c10_qualifications": 5.5555556,
-      "c12_tenure": 5.5555556
+      "c3_tools_years": 6.25,
+      "c4_ai_experience": 6.25,
+      "c5_ai_generated": 6.25,
+      "c6_spelling": 6.25,
+      "c7_grammar": 6.25,
+      "c8_star_par": 6.25,
+      "c10_qualifications": 6.25,
+      "c12_tenure": 6.25
     },
     "c1_subweights": {
       "title": 1,
       "headline": 0.25,
       "same_industry": 1,
       "competitor": 1,
-      "supplier": 1,
-      "top_firm": 1
+      "supplier": 1
     },
     "c1_title_levels": {
       "exact": 100,
@@ -43,13 +41,6 @@
       "full": 1,
       "partial": 0.5,
       "none": 0
-    },
-    "c9_tiers": {
-      "oxbridge": 100,
-      "ivy_league": 100,
-      "russell_group": 80,
-      "similar_top": 60,
-      "other": 0
     },
     "c10_levels": {
       "met": 1,
@@ -78,10 +69,7 @@
           "medium": 1,
           "high": 1.25
         }
-      },
-      "c13_consulting_top_in_industry": 3,
-      "c13_consulting_related_to_jd": 3,
-      "c13_cap": 10
+      }
     },
     "c2_strictness": {
       "cash_cow": 1,
@@ -117,6 +105,35 @@
       "conflict_points": -3,
       "cap_min": -15,
       "cap_max": 10
+    },
+    "c15": {
+      "points": {
+        "state_honour": 6,
+        "founder_exit": 6,
+        "university": {
+          "oxbridge": 5,
+          "ivy_league": 5,
+          "russell_group": 4,
+          "similar_top": 3
+        },
+        "elite_scholarship": 5,
+        "elite_employer": 5,
+        "top_consultancy": 6,
+        "fellowship_or_charter": 4,
+        "bestselling_author": 4,
+        "national_award": 3,
+        "founder_backing": 3,
+        "board_seat": 3,
+        "major_keynote": 2,
+        "patents_or_papers": 2,
+        "national_sport_or_commission": 2
+      },
+      "cap": 15,
+      "diminishing": 0.6,
+      "relevance": 0.5,
+      "unverified": 0.5,
+      "half_life_years": 0,
+      "strictness_coupling": false
     }
   },
   "weights_file": "config/weights.json",
@@ -129,23 +146,22 @@
   },
   "criteria": {
     "c1": {
-      "score": 60.48,
+      "score": 74.71,
       "weight": 50,
       "not_applicable": false,
       "confidence": "low",
-      "working": "weighted mean(title 100 (exact), headline 70 (close), same_industry 100, competitor 100, supplier 0, top_firm 0) = 60.48",
+      "working": "weighted mean(title 100 (exact), headline 70 (close), same_industry 100, competitor 100, supplier 0) = 74.71",
       "sub": {
         "title": 100,
         "headline": 70,
         "same_industry": 100,
         "competitor": 100,
-        "supplier": 0,
-        "top_firm": 0
+        "supplier": 0
       }
     },
     "c3": {
       "score": 66.67,
-      "weight": 5.5555556,
+      "weight": 6.25,
       "not_applicable": false,
       "confidence": "medium",
       "working": "mean(Salesforce: 94 months = 7.83 y / 5 y required = 100; ServiceNow: 118 months = 9.83 y / 3 y required = 100; Snowflake: 0 months = 0 y / 3 y required = 0) = 66.67",
@@ -157,56 +173,49 @@
     },
     "c4": {
       "score": 60.83,
-      "weight": 5.5555556,
+      "weight": 6.25,
       "not_applicable": false,
       "confidence": "medium",
       "working": "breadth min(3/4,1)*50 = 37.5 + depth min(1/3,1)*30 = 10 + tenure min(2/3,1)*20 = 13.33 = 60.83"
     },
     "c5": {
       "score": 55,
-      "weight": 5.5555556,
+      "weight": 6.25,
       "not_applicable": false,
       "confidence": "low",
       "working": "direction negative: 100 - likelihood 45 = 55 (an indication, not proof)"
     },
     "c6": {
       "score": 90,
-      "weight": 5.5555556,
+      "weight": 6.25,
       "not_applicable": false,
       "confidence": "medium",
       "working": "max(0, 100 - 5 * 2 spelling errors) = 90"
     },
     "c7": {
       "score": 90,
-      "weight": 5.5555556,
+      "weight": 6.25,
       "not_applicable": false,
       "confidence": "medium",
       "working": "max(0, 100 - 5 * 2 grammar errors) = 90"
     },
     "c8": {
       "score": 50,
-      "weight": 5.5555556,
+      "weight": 6.25,
       "not_applicable": false,
       "confidence": "medium",
       "working": "mean(6 full x 1, 10 partial x 0.5, 6 none x 0) over 22 achievement/experience bullets * 100 = 50 (3 other bullets not scored)"
     },
-    "c9": {
-      "score": 80,
-      "weight": 5.5555556,
-      "not_applicable": false,
-      "confidence": "medium",
-      "working": "tier russell_group = 80"
-    },
     "c10": {
       "score": 100,
-      "weight": 5.5555556,
+      "weight": 6.25,
       "not_applicable": false,
       "confidence": "high",
       "working": "weighted mean(PMP certification met x2, Lean Six Sigma Green Belt or higher met x1) = 3/3 * 100 = 100"
     },
     "c12": {
       "score": 77.78,
-      "weight": 5.5555556,
+      "weight": 6.25,
       "not_applicable": false,
       "confidence": "medium",
       "working": "median of 4 completed tenures (50, 20, 26, 30 months) = 28 months / (3 y * 12 = 36) capped at 1 * 100 = 77.78; current role excluded",
@@ -235,16 +244,16 @@
       "modifier": true,
       "not_applicable": false,
       "confidence": "medium",
-      "working": "base 0.75 (star) + buzz 0 -> strictness clamp(0.75, 0.25, 1.25) = 0.75; gamma = 0.5 + 0.75 = 1.25; adjusted = 100 * (67.48/100)^1.25 = 61.16"
+      "working": "base 0.75 (star) + buzz 0 -> strictness clamp(0.75, 0.25, 1.25) = 0.75; gamma = 0.5 + 0.75 = 1.25; adjusted = 100 * (74.25/100)^1.25 = 68.92"
     },
-    "c13": {
+    "c15": {
       "score": null,
       "weight": 0,
       "bonus": true,
-      "points": 6,
+      "points": 8.4,
       "not_applicable": false,
       "confidence": "medium",
-      "working": "Globex Consulting (top_in_industry true, related_to_jd true) +6 = 6, capped at 10 = +6"
+      "working": "top_consultancy 6 x 1 (related) x 1 (verified) x 0.6^0 = 6; university russell_group 4 x 1 (related) x 1 (verified) x 0.6^1 = 2.4 -> sum 8.4 = +8.4"
     },
     "c14": {
       "score": null,
@@ -256,7 +265,7 @@
       "working": "seniority +5, gaps 0, short_recent 0, contract 0, echo 0, sector +2, certs 0, conflict 0 = +7"
     }
   },
-  "core": 67.48,
+  "core": 74.25,
   "strictness": {
     "quadrant": "star",
     "base": 0.75,
@@ -264,23 +273,13 @@
     "strictness": 0.75,
     "gamma": 1.25
   },
-  "adjusted": 61.16,
+  "adjusted": 68.92,
   "bonus": {
     "items": [
       {
         "label": "Referral by a colleague (senior, high visibility, 5 x 1.25)",
         "points": 6.25,
         "group": "c11"
-      },
-      {
-        "label": "Consulting at a top-10 firm for the industry: Globex Consulting, Senior Consultant",
-        "points": 3,
-        "group": "c13"
-      },
-      {
-        "label": "Consulting work related to the JD: Globex Consulting, Senior Consultant",
-        "points": 3,
-        "group": "c13"
       },
       {
         "label": "Time at the target seniority",
@@ -291,13 +290,22 @@
         "label": "Sector recency",
         "points": 2,
         "group": "c14"
+      },
+      {
+        "label": "Senior Consultant, Globex Consulting (top_consultancy)",
+        "points": 6,
+        "group": "c15"
+      },
+      {
+        "label": "BSc Business and Economics (2:1), University of Example (university, russell_group)",
+        "points": 2.4,
+        "group": "c15"
       }
     ],
     "c11": 6.25,
-    "c13": 6,
-    "c13_uncapped": 6,
-    "total": 19.25,
-    "c14": 7
+    "total": 21.65,
+    "c14": 7,
+    "c15": 8.4
   },
   "c14": {
     "items": [
@@ -390,7 +398,111 @@
     "echo_phrases": [],
     "notes": []
   },
-  "total": 80.41,
+  "c15": {
+    "items": [
+      {
+        "label": "Senior Consultant, Globex Consulting",
+        "type": "top_consultancy",
+        "tier": null,
+        "related_to_jd": true,
+        "verified": true,
+        "year": 2016,
+        "source_ids": [
+          "S4"
+        ],
+        "points": 6,
+        "value": 6,
+        "rank": 0,
+        "contribution": 6,
+        "working": "top_consultancy 6 x 1 (related) x 1 (verified) x 0.6^0 = 6",
+        "evidence_paths": [
+          "c15.indicators[1].quote"
+        ],
+        "index": 1
+      },
+      {
+        "label": "BSc Business and Economics (2:1), University of Example",
+        "type": "university",
+        "tier": "russell_group",
+        "related_to_jd": true,
+        "verified": true,
+        "year": 2009,
+        "source_ids": [
+          "S6"
+        ],
+        "points": 4,
+        "value": 4,
+        "rank": 1,
+        "contribution": 2.4,
+        "working": "university russell_group 4 x 1 (related) x 1 (verified) x 0.6^1 = 2.4",
+        "evidence_paths": [
+          "c15.indicators[0].quote"
+        ],
+        "index": 0
+      }
+    ],
+    "total": 8.4,
+    "sum": 8.4,
+    "cap": 15,
+    "capped": false,
+    "coupling": false,
+    "multiplier": 1,
+    "education_institution": "University of Example",
+    "working": "top_consultancy 6 x 1 (related) x 1 (verified) x 0.6^0 = 6; university russell_group 4 x 1 (related) x 1 (verified) x 0.6^1 = 2.4 -> sum 8.4 = +8.4",
+    "notes": [],
+    "inputs": {
+      "prepared": [
+        {
+          "key": "university.russell_group",
+          "type": "university",
+          "tier": "russell_group",
+          "label": "BSc Business and Economics (2:1), University of Example",
+          "related": true,
+          "verified": true,
+          "year": 2009
+        },
+        {
+          "key": "top_consultancy",
+          "type": "top_consultancy",
+          "tier": null,
+          "label": "Senior Consultant, Globex Consulting",
+          "related": true,
+          "verified": true,
+          "year": 2016
+        }
+      ],
+      "cfg": {
+        "points": {
+          "state_honour": 6,
+          "founder_exit": 6,
+          "university.oxbridge": 5,
+          "university.ivy_league": 5,
+          "university.russell_group": 4,
+          "university.similar_top": 3,
+          "elite_scholarship": 5,
+          "elite_employer": 5,
+          "top_consultancy": 6,
+          "fellowship_or_charter": 4,
+          "bestselling_author": 4,
+          "national_award": 3,
+          "founder_backing": 3,
+          "board_seat": 3,
+          "major_keynote": 2,
+          "patents_or_papers": 2,
+          "national_sport_or_commission": 2
+        },
+        "cap": 15,
+        "diminishing": 0.6,
+        "relevance": 0.5,
+        "unverified": 0.5,
+        "half_life_years": 0,
+        "strictness_coupling": false,
+        "strictness": 0.75,
+        "assessed_year": 2026
+      }
+    }
+  },
+  "total": 90.57,
   "band": "Strong",
   "package": {
     "midpoint": 107500,

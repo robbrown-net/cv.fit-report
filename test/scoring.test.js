@@ -5,8 +5,9 @@ const fs = require('fs');
 const os = require('os');
 const path = require('path');
 const { spawnSync } = require('child_process');
-const { scoreAll, combine, computeBonus, band, computeC14, echoPhrases, atsDates, computePackage } = require('../lib/scoring');
+const { scoreAll, combine, computeBonus, band, computeC15, elite, computeC14, echoPhrases, atsDates, computePackage } = require('../lib/scoring');
 const { verify, normalise } = require('../lib/verify');
+const { validateAssessment, legacyFields } = require('../lib/validate');
 const { loadWeights, deepMerge } = require('../lib/weights');
 
 const W = loadWeights().weights;
@@ -24,8 +25,7 @@ function base() {
       headline: { level: 'none', evidence: ev() },
       same_industry: { match: true, evidence: ev({ source_ids: S1 }) },
       competitor: { match: false, evidence: ev() },
-      supplier: { match: true, evidence: ev({ source_ids: S1 }) },
-      top_firm: { match: false, evidence: ev() }
+      supplier: { match: true, evidence: ev({ source_ids: S1 }) }
     },
     c2: { quadrant: 'star', evidence: ev(), buzz: { adjustment: 0, evidence: ev() } },
     c3: { items: [] },
@@ -37,34 +37,33 @@ function base() {
     c6: { errors: [{}, {}, {}] },
     c7: { errors: [] },
     c8: { bullets: [{ level: 'full' }, { level: 'full' }, { level: 'partial' }, { level: 'none' }] },
-    c9: { tier: 'russell_group', graduated: true, evidence: ev() },
     c10: { items: [] },
     c12: { expected_years: { value: 3, from: 'jd' }, roles: [] },
-    c13: { roles: [] }
+    c15: { education_institution: 'University of Example', indicators: [] }
   };
 }
 
-test('c1 weighted mean of six sub-scores, headline carries 0.25', () => {
+test('c1 weighted mean of five sub-scores, headline carries 0.25', () => {
   const r = scoreAll(base(), {}, WD);
-  approx(r.criteria.c1.score, (70 + 0.25 * 0 + 100 + 0 + 100 + 0) / 5.25); // 51.43
+  approx(r.criteria.c1.score, (70 + 0.25 * 0 + 100 + 0 + 100) / 4.25); // 63.53
   assert.equal(r.criteria.c1.sub.title, 70);
   assert.equal(r.criteria.c1.sub.headline, 0);
-  assert.match(r.criteria.c1.working, /= 51\.43$/);
+  assert.match(r.criteria.c1.working, /= 63\.53$/);
   const a = base(); a.c1.headline.level = 'exact';
-  approx(scoreAll(a, {}, WD).criteria.c1.score, (70 + 25 + 100 + 100) / 5.25); // 57.14
-  assert.equal(scoreAll(base(), {}, WD).criteria.c1.sub.top10_consulting, undefined);
+  approx(scoreAll(a, {}, WD).criteria.c1.score, (70 + 25 + 100 + 100) / 4.25); // 69.41
+  assert.equal(scoreAll(base(), {}, WD).criteria.c1.sub.top_firm, undefined);
 });
 
 test('c1 custom subweights', () => {
   const w = deepMerge(WD, { c1_subweights: { title: 3 } });
-  approx(scoreAll(base(), {}, w).criteria.c1.score, (70 * 3 + 100 + 100) / (3 + 0.25 + 4)); // 56.55
+  approx(scoreAll(base(), {}, w).criteria.c1.score, (70 * 3 + 100 + 100) / (3 + 0.25 + 3)); // 65.60
 });
 
 test('c1 web sub-check with no source scores 0 and confidence low', () => {
   const a = base();
   a.c1.same_industry.evidence.source_ids = [];
   const r = scoreAll(a, {}, WD);
-  approx(r.criteria.c1.score, (70 + 0 + 0 + 100) / 5.25);
+  approx(r.criteria.c1.score, (70 + 0 + 0 + 100) / 4.25);
   assert.equal(r.criteria.c1.confidence, 'low');
   assert.match(r.criteria.c1.working, /no evidence found/);
 });
@@ -163,12 +162,6 @@ test('c8 only scores achievement and experience bullets; other is excluded', () 
   assert.equal(scoreAll(a, {}, WD).criteria.c8.not_applicable, true);
 });
 
-test('c9 tier and graduation', () => {
-  approx(scoreAll(base(), {}, WD).criteria.c9.score, 80);
-  const a = base(); a.c9.graduated = false;
-  approx(scoreAll(a, {}, WD).criteria.c9.score, 0);
-});
-
 test('c10 required counts double; n/a when none', () => {
   const a = base();
   a.c10.items = [
@@ -234,33 +227,13 @@ test('c12 expected years falls back to the default when absent', () => {
   approx(scoreAll(a, {}, WD).criteria.c12.score, 24 / 36 * 100);
 });
 
-test('c13: +3 top_in_industry, +3 more if related, related alone earns nothing, capped at 10', () => {
-  const run = (roles) => scoreAll(Object.assign(base(), { c13: { roles } }), {}, WD).bonus;
-  assert.equal(run([{ top_in_industry: true, related_to_jd: false }]).c13, 3);
-  assert.equal(run([{ top_in_industry: true, related_to_jd: true }]).c13, 6);
-  assert.equal(run([{ top_in_industry: false, related_to_jd: true }]).c13, 0);
-  const capped = run([{ top_in_industry: true, related_to_jd: true }, { top_in_industry: true, related_to_jd: true }]);
-  assert.equal(capped.c13_uncapped, 12);
-  assert.equal(capped.c13, 10);
-  assert.equal(capped.total, 10);
-  assert.ok(capped.items.every((i) => i.group === 'c13'));
-  assert.equal(capped.items.reduce((s, i) => s + i.points, 0), 10);
-});
-
-test('bonus items carry group and total splits c11/c13', () => {
-  const a = base(); a.c13.roles = [{ employer: 'X', top_in_industry: true, related_to_jd: false }];
-  const b = computeBonus({ referrals: [{ type: 'hiring_manager_trusted_influencer' }] }, WD, a);
-  assert.equal(b.c11, 10); assert.equal(b.c13, 3); assert.equal(b.total, 13);
-  assert.deepEqual(b.items.map((i) => i.group), ['c11', 'c13']);
-});
-
 test('renormalisation drops n/a weights; total = adjusted + bonus', () => {
   const r = scoreAll(base(), {}, WD); // c3, c10, c12 n/a; star gamma 1.25
-  const wt = 50 / 9;
-  const c1 = 270 / 5.25;
-  const core = (50 * c1 + wt * (55 + 65 + 85 + 100 + 62.5 + 80)) / (50 + 6 * wt);
+  const wt = 6.25;
+  const c1 = 270 / 4.25;
+  const core = (50 * c1 + wt * (55 + 65 + 85 + 100 + 62.5)) / (50 + 5 * wt);
   approx(r.core, core);
-  approx(r.adjusted, 100 * Math.pow(core / 100, 1.25));
+  approx(r.adjusted, 100 * Math.pow(core / 100, 1.25), 0.02);
   approx(r.total, r.adjusted);
   assert.equal(r.band, band(r.total));
   assert.equal(r.criteria.c1.weight, 50);
@@ -300,10 +273,10 @@ test('bands', () => {
 
 test('combine recomputes c1 from sliders and renormalises n/a', () => {
   const r = combine({ c1: 0, c4: 100, c3: null }, { c1_current_role: 50, c4_ai_experience: 50, c3_tools_years: 50 },
-    { title: 100, headline: 0, same_industry: 0, competitor: 0, supplier: 0, top_firm: 0 },
-    { title: 1, headline: 1, same_industry: 1, competitor: 1, supplier: 1, top_firm: 1 }, 0);
-  approx(r.c1, 16.67);
-  approx(r.core, (50 * 16.6667 + 50 * 100) / 100); // 58.33
+    { title: 100, headline: 0, same_industry: 0, competitor: 0, supplier: 0 },
+    { title: 1, headline: 1, same_industry: 1, competitor: 1, supplier: 1 }, 0);
+  approx(r.c1, 20);
+  approx(r.core, (50 * 20 + 50 * 100) / 100); // 60
   assert.equal(r.adjusted, r.core); // no gamma: unchanged
 });
 
@@ -355,7 +328,7 @@ test('verify: source validation', () => {
 test('weights deep merge', () => {
   const m = deepMerge(WD, { core: { c1_current_role: 40 }, _comment: 'x' });
   assert.equal(m.core.c1_current_role, 40);
-  assert.equal(m.core.c12_tenure, 5.5555556);
+  assert.equal(m.core.c12_tenure, 6.25);
   assert.equal(m._comment, WD._comment); // override _comment keys ignored
   assert.ok(W.core);
 });
@@ -367,7 +340,7 @@ const q = { text: 'x' };
 function a14(roles, c14) {
   const a = base();
   a.meta.assessed_on = '2026-10-04';
-  a.c9.institution = 'University of Example';
+  a.c15.education_institution = 'University of Example';
   a.c12.roles = roles;
   if (c14 !== null) a.c14 = Object.assign({ jd_basis: 'unknown', contract_signals: [], conventional_certs: { applies: false }, conflict_of_interest: { present: false } }, c14 || {});
   return a;
@@ -497,12 +470,12 @@ test('c14 ats_dates flag: positives and negatives', () => {
   assert.equal(flags.form_checklist.length, 5);
 });
 
-test('c14 education_blank flag follows c9.institution', () => {
+test('c14 education_blank flag follows c15.education_institution', () => {
   const a = a14([], {});
   assert.equal(computeC14(a, '', '', WD).flags.education_blank, false);
-  a.c9.institution = null;
+  a.c15.education_institution = null;
   assert.equal(computeC14(a, '', '', WD).flags.education_blank, true);
-  a.c9.institution = '  ';
+  a.c15.education_institution = '  ';
   assert.equal(computeC14(a, '', '', WD).flags.education_blank, true);
 });
 
@@ -533,21 +506,170 @@ test('c14 legacy file without c14: script items computed, no AI items, total inc
   assert.equal(r.criteria.c14.points, -6);
 });
 
-test('c14 scoreAll: total = clamp(adjusted + c11 + c13 + c14, 0, 100)', () => {
+test('c14 scoreAll: total = clamp(adjusted + c11 + c14 + c15, 0, 100)', () => {
   const a = a14([R('Now', '2023-07', null, { at_target_seniority: true, in_jd_sector: true }), R('B', '2021-01', '2023-06', { at_target_seniority: true })], {});
-  a.c13.roles = [{ top_in_industry: true, related_to_jd: false }];
+  a.c15.indicators = [{ type: 'elite_employer', related_to_jd: true, evidence: ev({ source_ids: S1 }) }];
   const cand = { referrals: [{ type: 'hiring_manager_trusted_influencer' }] };
   const r = scoreAll(a, cand, WD, 'a', 'b');
-  assert.equal(r.bonus.c11, 10); assert.equal(r.bonus.c13, 3);
+  assert.equal(r.bonus.c11, 10); assert.equal(r.bonus.c15, 5);
   assert.equal(r.bonus.c14, 7); // seniority +5, sector +2, nothing else
-  assert.equal(r.bonus.total, 20);
-  approx(r.total, Math.min(100, r.adjusted + 20));
+  assert.equal(r.bonus.total, 22);
+  approx(r.total, Math.min(100, r.adjusted + 22));
 });
 
 test('c14 scoreAll without texts skips echo and ats_dates with a note', () => {
   const r = scoreAll(a14([], {}), {}, WD);
   assert.deepEqual(r.c14.flags.ats_dates, []);
   assert.ok(r.c14.notes.some((n) => /echo skipped/.test(n)));
+});
+
+// ---- c15 prior elite indicators ----
+// assessed_on 2022-12-15 in base(), star strictness 0.75.
+const ind = (type, o) => Object.assign({ type, label: type, related_to_jd: true, quote: { text: 'q' }, evidence: ev({ source_ids: S1 }) }, o || {});
+const c15of = (inds, w, strictness) => {
+  const a = base(); a.c15.indicators = inds;
+  return computeC15(a, w || WD, strictness === undefined ? 0.75 : strictness);
+};
+
+test('c15 default weights: cap 15, diminishing 0.6, relevance 0.5, unverified 0.5, half-life off', () => {
+  const k = WD.c15;
+  assert.deepEqual([k.cap, k.diminishing, k.relevance, k.unverified, k.half_life_years, k.strictness_coupling], [15, 0.6, 0.5, 0.5, 0, false]);
+  assert.equal(c15of([]).total, 0);
+  assert.equal(c15of([]).working, 'no elite indicators evidenced: +0');
+});
+
+test('c15 diminishing returns: strongest first, whatever the input order', () => {
+  const r = c15of([ind('elite_employer'), ind('state_honour')]); // 6 + 5 * 0.6 = 9
+  assert.equal(r.total, 9);
+  assert.deepEqual(r.items.map((i) => i.type), ['state_honour', 'elite_employer']);
+  assert.deepEqual(r.items.map((i) => i.contribution), [6, 3]);
+  assert.equal(r.items[1].working, 'elite_employer 5 x 1 (related) x 1 (verified) x 0.6^1 = 3');
+  assert.equal(c15of([ind('state_honour'), ind('founder_exit'), ind('top_consultancy')]).total, 11.76); // 6 + 3.6 + 2.16
+});
+
+test('c15 relevance: an unrelated indicator counts at the relevance setting', () => {
+  assert.equal(c15of([ind('top_consultancy', { related_to_jd: false })]).total, 3); // 6 x 0.5
+  assert.equal(c15of([ind('top_consultancy')]).total, 6);
+  const w = deepMerge(WD, { c15: { relevance: 0.25 } });
+  assert.equal(c15of([ind('top_consultancy', { related_to_jd: false })], w).total, 1.5);
+});
+
+test('c15 unverified: no valid source cited halves the value', () => {
+  const r = c15of([ind('national_award', { evidence: ev() })]); // 3 x 0.5
+  assert.equal(r.total, 1.5);
+  assert.equal(r.items[0].verified, false);
+  assert.match(r.items[0].working, /0\.5 \(unverified\)/);
+});
+
+test('c15 half-life: 0.5 ^ (years since / half-life), measured from the assessed_on year', () => {
+  const w = deepMerge(WD, { c15: { half_life_years: 10 } });
+  assert.equal(c15of([ind('state_honour', { year: 2012 })], w).total, 3); // 6 x 0.5^1
+  assert.equal(c15of([ind('state_honour', { year: 2002 })], w).total, 1.5); // 6 x 0.5^2
+  assert.equal(c15of([ind('state_honour', { year: 2022 })], w).total, 6);
+  assert.equal(c15of([ind('state_honour')], w).total, 6); // no year given: no decay
+  assert.equal(c15of([ind('state_honour', { year: 2002 })]).total, 6); // half-life 0 = off
+  approx(c15of([ind('state_honour', { year: 2017 })], w).total, 6 * Math.pow(0.5, 0.5));
+});
+
+test('c15 cap', () => {
+  const inds = [ind('state_honour'), ind('founder_exit'), ind('top_consultancy')]; // 11.76 before the cap
+  const r = c15of(inds, deepMerge(WD, { c15: { cap: 10 } }));
+  assert.equal(r.total, 10); assert.equal(r.capped, true); assert.equal(r.sum, 11.76);
+  const sa = base(); sa.c15.indicators = inds;
+  const b = scoreAll(sa, {}, deepMerge(WD, { c15: { cap: 10 } })).bonus;
+  assert.equal(b.c15, 10);
+  assert.equal(b.items.filter((i) => i.group === 'c15').reduce((x, i) => x + i.points, 0).toFixed(2), '10.00');
+});
+
+test('c15 strictness coupling multiplies by 0.5 + strictness before the cap', () => {
+  const w = deepMerge(WD, { c15: { strictness_coupling: true } });
+  assert.equal(c15of([ind('state_honour')], w, 0.75).total, 7.5); // 6 x 1.25
+  assert.equal(c15of([ind('state_honour')], w, 0.25).total, 4.5); // 6 x 0.75
+  assert.equal(c15of([ind('state_honour')], w, 1.25).total, 10.5);
+  assert.equal(c15of([ind('state_honour')], deepMerge(w, { c15: { cap: 7 } }), 0.75).total, 7); // cap applied after the multiplier
+  assert.equal(c15of([ind('state_honour')], WD, 0.25).total, 6); // off by default
+  const sa = base(); sa.c15.indicators = [ind('state_honour')];
+  assert.equal(scoreAll(sa, {}, w).bonus.c15, 7.5); // star base 0.75, no buzz
+});
+
+test('c15 university tiers and the other tier', () => {
+  const u = (tier, o) => ind('university', Object.assign({ tier }, o || {}));
+  assert.equal(c15of([u('oxbridge')]).total, 5);
+  assert.equal(c15of([u('ivy_league')]).total, 5);
+  assert.equal(c15of([u('russell_group')]).total, 4);
+  assert.equal(c15of([u('similar_top')]).total, 3);
+  const o = c15of([u('other')]);
+  assert.equal(o.total, 0); assert.equal(o.notes.length, 1);
+  assert.equal(c15of([ind('university')]).total, 0); // missing tier
+  assert.equal(c15of([u('russell_group', { related_to_jd: false, evidence: ev() })]).total, 1); // 4 x 0.5 x 0.5
+  assert.match(c15of([u('oxbridge')]).items[0].working, /^university oxbridge 5 x 1 \(related\)/);
+});
+
+test('c15 unknown type earns 0 points with a note', () => {
+  const r = c15of([ind('knighthood_of_the_realm'), ind('state_honour')]);
+  assert.equal(r.total, 6);
+  assert.ok(r.notes.some((n) => /unknown type "knighthood_of_the_realm"/.test(n)));
+});
+
+test('c15 is a bonus: c11 + c14 + c15, group c15, and scored.json bonus shape', () => {
+  const a = base(); a.c15.indicators = [ind('state_honour'), ind('elite_employer')];
+  const r = scoreAll(a, { referrals: [{ type: 'hiring_manager_trusted_influencer' }] }, WD, 'a', 'b');
+  assert.equal(r.bonus.c11, 10); assert.equal(r.bonus.c15, 9);
+  assert.equal(r.bonus.c13, undefined);
+  assert.equal(r.bonus.total, r.bonus.c11 + r.bonus.c14 + r.bonus.c15);
+  assert.deepEqual(r.bonus.items.filter((i) => i.group === 'c15').map((i) => i.points), [6, 3]);
+  assert.equal(r.criteria.c15.points, 9);
+  assert.equal(r.criteria.c9, undefined); assert.equal(r.criteria.c13, undefined);
+  approx(r.total, Math.min(100, r.adjusted + r.bonus.total));
+});
+
+test('c15 elite() is pure and combine recomputes it from the inputs', () => {
+  const a = base(); a.c15.indicators = [ind('state_honour'), ind('elite_employer')];
+  const r = scoreAll(a, {}, WD);
+  const inp = r.c15.inputs;
+  assert.equal(elite(inp.prepared, inp.cfg).total, 9);
+  const scores = {}; ['c1', 'c3', 'c4', 'c5', 'c6', 'c7', 'c8', 'c10', 'c12'].forEach((k) => { scores[k] = r.criteria[k].score; });
+  const c = combine(scores, WD.core, null, null, r.bonus.c11 + r.bonus.c14, r.strictness.gamma, inp.prepared, inp.cfg);
+  assert.equal(c.c15, 9);
+  approx(c.total, r.total, 0.02);
+  const cfg2 = Object.assign({}, inp.cfg, { points: Object.assign({}, inp.cfg.points, { state_honour: 0 }) });
+  assert.equal(elite(inp.prepared, cfg2).total, 5);
+});
+
+test('c15 legacy c9, c13 and c1.top_firm are tolerated and ignored', () => {
+  const a = base();
+  a.c9 = { tier: 'oxbridge', graduated: true, institution: 'Old University', evidence: ev() };
+  a.c13 = { roles: [{ top_in_industry: true, related_to_jd: true }] };
+  a.c1.top_firm = { match: true, evidence: ev({ source_ids: S1 }) };
+  assert.deepEqual(legacyFields(a), ['c9', 'c13', 'c1.top_firm']);
+  const r = scoreAll(a, {}, WD), r0 = scoreAll(base(), {}, WD);
+  assert.equal(r.total, r0.total);
+  assert.equal(r.criteria.c1.score, r0.criteria.c1.score);
+  assert.equal(r.bonus.c15, 0);
+  assert.deepEqual(validateAssessment(Object.assign(a, { c2: a.c2, summary: {}, current_role: { start: '2020-01', evidence: ev() } }), WD).filter((e) => /^c9|^c13|top_firm/.test(e)), []);
+  assert.equal(computeC14(a, '', '', WD).flags.education_blank, false); // c15 institution is set; c9.institution is not read
+  delete a.c15;
+  assert.equal(computeC14(a, '', '', WD).flags.education_blank, true);
+});
+
+test('c15 education flag comes from c15.education_institution only', () => {
+  const a = base();
+  assert.equal(scoreAll(a, {}, WD).c14.flags.education_blank, false);
+  a.c15.education_institution = null;
+  assert.equal(scoreAll(a, {}, WD).c14.flags.education_blank, true);
+  a.c15.education_institution = 'University of Example'; a.c15.indicators = [];
+  assert.equal(scoreAll(a, {}, WD).c14.flags.education_blank, false); // whatever the tier, even with no indicator
+});
+
+test('c15 validation: type and tier enums, related_to_jd boolean, optional year', () => {
+  const full = (c15) => { const a = base(); a.current_role = { start: '2020-01', evidence: ev() }; a.summary = {}; a.c15 = c15; if (c15 === undefined) delete a.c15; return validateAssessment(a, WD).filter((e) => /^c15/.test(e)); };
+  assert.deepEqual(full({ education_institution: null, indicators: [] }), []);
+  assert.deepEqual(full(undefined), []); // missing c15 is valid
+  assert.deepEqual(full({ indicators: [ind('university', { tier: 'other' }), ind('state_honour', { year: 2015 })] }), []);
+  assert.ok(full({ indicators: [ind('nonsense')] }).some((e) => /c15\.indicators\[0\]\.type must be one of/.test(e)));
+  assert.ok(full({ indicators: [ind('university', { tier: 'hogwarts' })] }).some((e) => /\.tier must be one of/.test(e)));
+  assert.ok(full({ indicators: [ind('state_honour', { related_to_jd: 'yes' })] }).some((e) => /related_to_jd must be true or false/.test(e)));
+  assert.ok(full({ indicators: [ind('state_honour', { year: '2015' })] }).some((e) => /\.year/.test(e)));
 });
 
 // ---- CLI ----

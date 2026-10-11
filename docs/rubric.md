@@ -11,15 +11,16 @@ override them in `config/weights.local.json` or with the sliders in the HTML rep
 ## Total
 
 ```
-core      = sum(weight_i * score_i) / sum(weight_i)     over c1, c3..c10, c12; each score_i in 0-100
+core      = sum(weight_i * score_i) / sum(weight_i)     over c1, c3..c8, c10, c12; each score_i in 0-100
 gamma     = 0.5 + strictness                           (c2: from the employer's BCG position)
 adjusted  = 100 * (core / 100) ^ gamma
-bonus     = c11 points + c13 points + c14 points (c11 and c14 may be negative)
+bonus     = c11 points + c14 points + c15 points (c11 and c14 may be negative)
 total     = clamp(adjusted + bonus, 0, 100)
 ```
 
-Default core weights: c1 = 50, and the other nine scored criteria (c3 to c10, plus c12) share
-the remaining 50 equally (50/9, about 5.56 each). c2 is not a weighted criterion: it sets how
+Default core weights: c1 = 50, and the other eight scored criteria (c3 to c8, c10 and c12) share
+the remaining 50 equally (6.25 each). The numbers c9 and c13 are retired: top university and
+consulting experience are now scored in c15, prior elite indicators. c2 is not a weighted criterion: it sets how
 harshly the employer treats any gap between the CV and the job description.
 
 A criterion the AI could not assess (for example no JD tools listed for c3) is marked
@@ -28,7 +29,7 @@ the report, never hidden.
 
 ## c1. Current or most recent role (default weight 50)
 
-Uses the candidate's current role, or their most recent if they are between roles. Six
+Uses the candidate's current role, or their most recent if they are between roles. Five
 sub-checks. Sub-weights are 1 each by default, except `headline`, which is 0.25:
 
 | Sub-check | Score | AI judgement needed |
@@ -38,10 +39,9 @@ sub-checks. Sub-weights are 1 each by default, except `headline`, which is 0.25:
 | `same_industry` | 100 or 0 | yes: **web search** for both companies' industry classification (for example SIC/NAICS codes, company filings, Crunchbase, Wikipedia), and cite it |
 | `competitor` | 100 or 0 | yes: **web search** the hiring company's competitor landscape. 100 if the current employer is a named competitor |
 | `supplier` | 100 or 0 | yes: **web search** for evidence that the current employer supplies a product or service the hiring company uses (case studies, press releases, partner pages) |
-| `top_firm` | 100 or 0 | yes: **web search** for the market leader by revenue or share in the hiring company's industry. 100 if the candidate has *ever* worked there |
 
-`c1 = weighted mean of the six sub-scores`. (Consulting experience is scored as bonus points
-in c13.)
+`c1 = weighted mean of the five sub-scores`. (A past role at the market leader, and
+consulting experience, are scored in c15.)
 
 Every sub-check that relies on web search must cite at least one source (URL, title, date
 accessed, and the supporting sentence quoted). If no source can be found, the sub-check scores
@@ -70,7 +70,7 @@ little to lose and will take a chance on fresh eyes.
 Worked example: with a core of 70, a Cash Cow (gamma 1.5) gives 58.6, and a Dog (gamma 0.75)
 gives 76.5. A core of 100 stays at 100 in every quadrant.
 
-## c3. Years with the JD's tools, services and suppliers (default 5.56)
+## c3. Years with the JD's tools, services and suppliers (default 6.25)
 
 1. **AI judgement:** list every named tool, platform, service or supplier in the JD (for
    example Salesforce, AWS, SAP, Workday, ServiceNow), each with its JD quote and any years
@@ -80,7 +80,7 @@ gives 76.5. A core of 100 stays at 100 in every quadrant.
 3. Item score = `min(years / required, 1) * 100`.
 4. `c3 = mean of item scores`. If the JD names no tools, c3 is `not_applicable`.
 
-## c4. AI experience and outcomes (default 5.56)
+## c4. AI experience and outcomes (default 6.25)
 
 **AI judgement:** list each use of AI evidenced in the CV, with its quote, its outcome category
 (`innovation`, `cost_saving`, `time_to_market`, `revenue_growth`, `risk_reduction`,
@@ -94,7 +94,7 @@ tenure  = min(years using AI / 3, 1) * 20
 c4 = breadth + depth + tenure
 ```
 
-## c5. Likelihood that the CV was AI-generated (default 5.56)
+## c5. Likelihood that the CV was AI-generated (default 6.25)
 
 **AI judgement, labelled as an indication and never as proof.** Estimate a likelihood from 0
 to 100 from listed signals, each with a quote. Example signals: stock AI phrasing ("spearheaded",
@@ -106,19 +106,19 @@ with no specific numbers, American spelling in an otherwise British CV, or the r
 
 The report always shows the caveat that AI detection is unreliable.
 
-## c6. Spelling (default 5.56)
+## c6. Spelling (default 6.25)
 
 **AI judgement:** list every spelling error with the exact word as it appears, the line, and the
 correction. Spelling variants in the configured variety (en-GB by default) are not errors, and
 nor are proper nouns or product names. `c6 = max(0, 100 - 5 * errors)`.
 
-## c7. Grammar (default 5.56)
+## c7. Grammar (default 6.25)
 
 Same as c6, for grammar: agreement, tense consistency, missing articles, run-ons, misplaced
 modifiers and punctuation that changes the meaning. Style preferences are not errors.
 `c7 = max(0, 100 - 5 * errors)`.
 
-## c8. STAR or Problem-Action-Result bullets (default 5.56)
+## c8. STAR or Problem-Action-Result bullets (default 6.25)
 
 **AI judgement:** classify every **achievement and experience** bullet in the CV as `full` (situation or problem, action and
 result all present), `partial` (action and result, or action and a vague result) or `none`. Each
@@ -127,14 +127,7 @@ classification lists which parts were found. Tag every bullet with its `section`
 certifications are `other`: they are shown in the report but not scored.
 `c8 = mean(full 1, partial 0.5, none 0) * 100`, over achievement and experience bullets only.
 
-## c9. Top university (default 5.56)
-
-**AI judgement + web search where unsure:** take the best institution the candidate graduated
-from. Score: Oxbridge 100, Ivy League 100, Russell Group 80, comparable top institution
-(top 100 in QS or THE world rankings, cite which) 60, other 0. Graduation must be evidenced in
-the CV: attendance alone does not count.
-
-## c10. Qualifications and certifications against the JD (default 5.56)
+## c10. Qualifications and certifications against the JD (default 6.25)
 
 **AI judgement:** list each qualification or certification the JD asks for (required or
 desirable), mark it `met`, `partial` (equivalent or related) or `not_met`, and quote the CV
@@ -154,7 +147,7 @@ Self-reported by the candidate in `candidate.json`. The AI asks for it and never
 
 All the referrals that apply are added together.
 
-## c12. Tenure against the employer's expected longevity (default 5.56)
+## c12. Tenure against the employer's expected longevity (default 6.25)
 
 Employers hire for longevity: a director role usually expects three to five years. A CV made up
 of short engagements counts against the candidate on a sliding scale.
@@ -175,17 +168,6 @@ of short engagements counts against the candidate on a sliding scale.
 3. Tenure in months is counted inclusively, the same way as c3. The current role is excluded,
    because it is unfinished, unless it is the only role.
 4. `c12 = min(median tenure / (expected years * 12), 1) * 100`.
-
-## c13. Consulting experience (bonus points)
-
-**AI judgement + web search:** for each role at a consulting firm, decide:
-- `top_in_industry`: whether the firm ranks in the top 10 consultancies serving the hiring
-  company's industry (cite a ranking such as Consultancy.uk, Vault, Gartner or an analyst
-  report). Worth +3.
-- `related_to_jd`: whether the role's evidenced projects relate to what this JD is hiring for
-  (quote the CV and the JD). Worth +3 more, and only for a top-10 firm.
-
-c13 is capped at +10 by default.
 
 ## c14. Screening signals (plus and minus points)
 
@@ -210,10 +192,62 @@ text, so the candidate can check the arithmetic exactly. c14 is clamped between 
   written with "to" or a typographic dash instead of an ASCII hyphen, for example
   "Apr 2022 to Apr 2023". Many applicant tracking systems split ranges only on "-", so these
   roles may parse as zero months.
-- **Education with no institution:** shown when c9 has no institution.
+- **Education with no institution:** shown when `c15.education_institution` is empty.
 - **Application form knockouts:** a fixed checklist, always shown: salary expectation, notice
   period, right to work, current job title, and yes/no experience questions. These often
   cause rejections within a day, and the CV cannot show them.
+
+## c15. Prior elite indicators (bonus points)
+
+Some achievements show that a selective institution has already assessed the candidate and
+let them in. Screeners and hiring managers read these as a shortcut for quality. This section
+scores how that pedigree is likely to be **perceived**. It is not a measure of merit, and
+pedigree correlates with privilege, so the section is capped and every weight is adjustable.
+
+**AI judgement + web search:** list each indicator the CV evidences, with a CV quote, and cite a
+public source wherever one exists.
+
+| Type | Default points | What counts | Typical source |
+|---|---|---|---|
+| `state_honour` | 6 | A state honour: OBE, MBE, CBE, a presidential medal, the Légion d'honneur | The Gazette, official lists |
+| `founder_exit` | 6 | Founded a company that was acquired or listed | Companies House, press |
+| `university` | Oxbridge 5, Ivy League 5, Russell Group 4, comparable 3 | Graduated from a top institution, including a top MBA. Comparable means top 100 in the QS or THE world rankings. Attendance alone does not count | The university, rankings |
+| `elite_scholarship` | 5 | A named competitive scholarship: Rhodes, Fulbright, Marshall, Chevening | Scholarship lists |
+| `elite_employer` | 5 | A role at the market leader of the hiring company's industry, or at a globally selective employer or graduate scheme | Rankings, market share reports |
+| `top_consultancy` | 6 | A role at a top-10 consultancy for the hiring company's industry. With the default relevance setting this gives 3 when the work is unrelated to the JD and 6 when it is related | Consultancy.uk, Vault |
+| `fellowship_or_charter` | 4 | A fellowship (FREng, FRS, FBCS) or a hard-to-earn charter (CFA, chartered engineer) | Institution registers |
+| `bestselling_author` | 4 | A book on a recognised bestseller list, or with a major publisher | Bestseller lists, publisher |
+| `national_award` | 3 | A national industry award, the King's Award for Enterprise, a dean's or university medal, a list such as Forbes 30 Under 30 | Award bodies |
+| `founder_backing` | 3 | Tier-one venture funding or a selective accelerator (Y Combinator, Techstars) | Crunchbase, press |
+| `board_seat` | 3 | A board or non-executive seat at a listed or major company | Company filings |
+| `major_keynote` | 2 | A keynote at a major event: TED main stage, Davos, the leading conference in the field | Event programmes |
+| `patents_or_papers` | 2 | Granted patents or cited peer-reviewed papers | Patent offices, Google Scholar |
+| `national_sport_or_commission` | 2 | National-level sport, a military officer commission, a competition medal, or maintaining a widely used open-source project | Federations, public records |
+
+Claims only the candidate can vouch for, such as internal ratings or fast promotions, are not
+indicators.
+
+### Scoring
+
+```
+value_i   = points(type or tier)
+            * (1 if related_to_jd else relevance)
+            * (1 if a valid source is cited else unverified)
+            * (0.5 ^ (years since / half_life) if half_life > 0 and a year is given, else 1)
+c15       = min(cap, sum over indicators sorted strongest first of value_i * diminishing ^ i)
+```
+
+Defaults: `cap` 15, `diminishing` 0.6 (the strongest indicator counts in full, the next at 60
+per cent, the next at 36 per cent), `relevance` 0.5, `unverified` 0.5, `half_life` 0 (off).
+An optional `strictness_coupling` (off by default) multiplies c15 by `0.5 + strictness`, so a
+Cash Cow values pedigree more than a Dog.
+
+`related_to_jd` is true when the indicator bears on this role: a degree in a relevant
+subject, an employer in the hiring company's industry, consulting work on what the JD hires
+for. The AI states why.
+
+`education_institution` records whether the CV names where the candidate studied, whatever
+its tier. When it is empty, the report raises the "education with no institution" flag.
 
 ## Package and location (not scored)
 

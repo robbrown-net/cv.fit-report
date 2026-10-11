@@ -62,8 +62,7 @@ report.pdf        written by bin/report.js
     "same_industry":    { "match": true,  "candidate_industry": "...", "hiring_industry": "...", "evidence": Evidence },
     "competitor":       { "match": false, "competitors_considered": ["..."], "evidence": Evidence },
     "supplier":         { "match": false, "products_or_services": ["..."], "evidence": Evidence },
-    "headline":         { "level": "exact|close|adjacent|none", "evidence": Evidence },
-    "top_firm":         { "match": false, "top_firm": "...", "evidence": Evidence }
+    "headline":         { "level": "exact|close|adjacent|none", "evidence": Evidence }
   },
   "c2": {
     "quadrant": "cash_cow|star|question_mark|dog",
@@ -95,7 +94,6 @@ report.pdf        written by bin/report.js
   "c7": { "errors": [ { "quote": Quote, "correction": "...", "rule": "subject-verb agreement", "line": 30 } ] },
   "c8": { "bullets": [ { "quote": Quote, "section": "achievement|experience|other", "level": "full|partial|none",
                          "parts": { "situation": true, "action": true, "result": true } } ] },
-  "c9": { "institution": "University of Example", "tier": "russell_group", "graduated": true, "evidence": Evidence },
   "c10": {
     "not_applicable": false,
     "items": [ { "requirement": "PMP or equivalent", "required": true, "status": "met|partial|not_met",
@@ -111,17 +109,22 @@ report.pdf        written by bin/report.js
                  "quote": Quote } ],
     "evidence": Evidence
   },
-  "c13": {
-    "firms_considered": ["..."],
-    "roles": [ { "employer": "PwC", "title": "...", "top_in_industry": true, "related_to_jd": false,
-                 "quote": Quote, "evidence": Evidence } ]
-  },
   "c14": {
     "jd_basis": "permanent|contract|unknown", "jd_basis_evidence": Evidence,
     "contract_signals": [ { "quote": Quote, "note": "..." } ],
     "conventional_certs": { "applies": true, "expected": ["PRINCE2", "MSP"], "held": [],
                             "not_equivalent": ["DSDM Atern"], "evidence": Evidence },
     "conflict_of_interest": { "present": false, "description": "", "evidence": Evidence }
+  },
+  "c15": {
+    "education_institution": "University of Example",    // null when the CV names none
+    "indicators": [
+      { "type": "university", "tier": "russell_group",   // tier is for type "university" only
+        "label": "BSc Economics, University of Example",
+        "related_to_jd": true, "relevance_note": "why it bears on this role, or does not",
+        "year": 2011,                                    // year achieved or ended; optional
+        "quote": Quote, "evidence": Evidence }           // a valid source_id makes it verified
+    ]
   },
   "package": {
     "posted": { "salary": "not stated", "benefits": ["..."], "evidence": Evidence },
@@ -162,7 +165,7 @@ The agent never writes a score field. `bin/score.js` computes all of them.
   "core": 58.2,
   "strictness": { "quadrant": "star", "base": 0.75, "buzz": 0.1, "strictness": 0.85, "gamma": 1.35 },
   "adjusted": 48.1,
-  "bonus": { "items": [ { "label": "...", "points": 5, "group": "c11|c13|c14" } ], "c11": 5, "c13": 3, "c14": 0, "total": 8 },
+  "bonus": { "items": [ { "label": "...", "points": 5, "group": "c11|c14|c15" } ], "c11": 5, "c14": 0, "c15": 3, "total": 8 },
   "c14": { "items": [ { "key": "gaps", "label": "...", "points": -3, "working": "...", "evidence_paths": [] } ],
            "total": -3, "flags": { "ats_dates": [ { "line": 12, "text": "...", "matches": [ { "found": "Apr 2022 to Apr 2023", "fix": "Apr 2022 - Apr 2023" } ] } ],
                                   "education_blank": false, "form_checklist": ["..."] }, "echo_phrases": ["..."] },

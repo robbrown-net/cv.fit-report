@@ -23,8 +23,7 @@ function skeleton(company, title, today) {
       headline: { level: null, evidence: ev() },
       same_industry: { match: false, candidate_industry: null, hiring_industry: null, evidence: ev() },
       competitor: { match: false, competitors_considered: [], evidence: ev() },
-      supplier: { match: false, products_or_services: [], evidence: ev() },
-      top_firm: { match: false, top_firm: null, evidence: ev() }
+      supplier: { match: false, products_or_services: [], evidence: ev() }
     },
     c2: {
       quadrant: null, market_growth_pct: null, relative_share: null, unit_assessed: null, evidence: ev(),
@@ -36,10 +35,9 @@ function skeleton(company, title, today) {
     c6: { variant: 'en-GB', errors: [] },
     c7: { errors: [] },
     c8: { bullets: [] },
-    c9: { institution: null, tier: null, graduated: null, evidence: ev() },
     c10: { not_applicable: false, items: [] },
     c12: { expected_years: { value: 3, from: 'default', evidence: ev() }, roles: [], evidence: ev() },
-    c13: { firms_considered: [], roles: [] },
+    c15: { education_institution: null, indicators: [] },
     c14: {
       jd_basis: 'unknown', jd_basis_evidence: ev(), contract_signals: [],
       conventional_certs: { applies: false, expected: [], held: [], not_equivalent: [], evidence: ev() },

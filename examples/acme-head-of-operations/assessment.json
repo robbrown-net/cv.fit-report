@@ -200,23 +200,6 @@
         "reasoning": "No evidence found that Example Payments Ltd supplies a product or service Acme uses.",
         "confidence": "low"
       }
-    },
-    "top_firm": {
-      "match": false,
-      "top_firm": "Acme Corp",
-      "evidence": {
-        "cv_quotes": [],
-        "jd_quotes": [
-          {
-            "text": "Acme Corp is a leading payments processor"
-          }
-        ],
-        "source_ids": [
-          "S3"
-        ],
-        "reasoning": "Acme is the market leader by revenue in the cited table. Alex has never worked there (see candidate.json).",
-        "confidence": "medium"
-      }
     }
   },
   "c2": {
@@ -746,24 +729,6 @@
       }
     ]
   },
-  "c9": {
-    "institution": "University of Example",
-    "tier": "russell_group",
-    "graduated": true,
-    "evidence": {
-      "cv_quotes": [
-        {
-          "text": "University of Example | BSc Business and Economics (2:1) | 2006 - 2009"
-        }
-      ],
-      "jd_quotes": [],
-      "source_ids": [
-        "S6"
-      ],
-      "reasoning": "The CV shows a completed BSc with a 2:1 classification, and the institution is in a Russell Group-style group in the cited illustrative source.",
-      "confidence": "medium"
-    }
-  },
   "c10": {
     "not_applicable": false,
     "items": [
@@ -918,39 +883,6 @@
       "confidence": "high"
     }
   },
-  "c13": {
-    "firms_considered": [
-      "Globex Consulting"
-    ],
-    "roles": [
-      {
-        "employer": "Globex Consulting",
-        "title": "Senior Consultant",
-        "top_in_industry": true,
-        "related_to_jd": true,
-        "quote": {
-          "text": "Globex Consulting | Senior Consultant | May 2015 - December 2016"
-        },
-        "evidence": {
-          "cv_quotes": [
-            {
-              "text": "A top-5 UK bank was losing 6% of card applications to slow manual checks; led a 6-person team to redesign the workflow, which recovered 4.5m GBP of annual revenue."
-            }
-          ],
-          "jd_quotes": [
-            {
-              "text": "own end-to-end operations for merchant onboarding, settlement, disputes and customer support"
-            }
-          ],
-          "source_ids": [
-            "S4"
-          ],
-          "reasoning": "Globex Consulting is ranked eighth in the cited illustrative ranking for payments and banking, and its workflow-redesign project in banking relates to the operations this role owns.",
-          "confidence": "medium"
-        }
-      }
-    ]
-  },
   "c14": {
     "jd_basis": "unknown",
     "jd_basis_evidence": {
@@ -993,6 +925,62 @@
         "confidence": "medium"
       }
     }
+  },
+  "c15": {
+    "education_institution": "University of Example",
+    "indicators": [
+      {
+        "type": "university",
+        "tier": "russell_group",
+        "label": "BSc Business and Economics (2:1), University of Example",
+        "related_to_jd": true,
+        "relevance_note": "A business and economics degree bears on running payments operations.",
+        "year": 2009,
+        "quote": {
+          "text": "University of Example | BSc Business and Economics (2:1) | 2006 - 2009"
+        },
+        "evidence": {
+          "cv_quotes": [
+            {
+              "text": "University of Example | BSc Business and Economics (2:1) | 2006 - 2009"
+            }
+          ],
+          "jd_quotes": [],
+          "source_ids": [
+            "S6"
+          ],
+          "reasoning": "The CV shows a completed BSc with a 2:1 classification, and the institution is in a Russell Group-style group in the cited illustrative source.",
+          "confidence": "medium"
+        }
+      },
+      {
+        "type": "top_consultancy",
+        "label": "Senior Consultant, Globex Consulting",
+        "related_to_jd": true,
+        "relevance_note": "The workflow redesign for a bank relates to the operations this role owns.",
+        "year": 2016,
+        "quote": {
+          "text": "Globex Consulting | Senior Consultant | May 2015 - December 2016"
+        },
+        "evidence": {
+          "cv_quotes": [
+            {
+              "text": "Globex Consulting | Senior Consultant | May 2015 - December 2016"
+            }
+          ],
+          "jd_quotes": [
+            {
+              "text": "own end-to-end operations for merchant onboarding, settlement, disputes and customer support"
+            }
+          ],
+          "source_ids": [
+            "S4"
+          ],
+          "reasoning": "Globex Consulting is ranked eighth in the cited illustrative ranking for payments and banking, and its workflow-redesign project in banking relates to the operations this role owns.",
+          "confidence": "medium"
+        }
+      }
+    ]
   },
   "package": {
     "posted": {

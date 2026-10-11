@@ -8,7 +8,7 @@ const path = require('path');
 const { scoreAll } = require('../lib/scoring');
 const { verify } = require('../lib/verify');
 const { loadWeights } = require('../lib/weights');
-const { validateAssessment, validateCandidate } = require('../lib/validate');
+const { validateAssessment, validateCandidate, legacyFields } = require('../lib/validate');
 
 function fail(msgs) {
   console.error('Invalid input:');
@@ -47,6 +47,7 @@ function main() {
   const errs = validateAssessment(assessment, weights).concat(validateCandidate(candidate));
   if (errs.length) fail(errs);
 
+  if (legacyFields(assessment).length) console.log('Note: legacy fields ignored (c9, c13, c1.top_firm): move them to c15');
   const ver = verify(assessment, cv, jd);
   if (ver.source_refs_missing.length) {
     fail(ver.source_refs_missing.map((r) => r.path + ' references unknown source id "' + r.id + '"'));
@@ -87,6 +88,7 @@ function main() {
     adjusted: result.adjusted,
     bonus: result.bonus,
     c14: result.c14,
+    c15: result.c15,
     total: result.total,
     band: result.band
   };
@@ -94,7 +96,7 @@ function main() {
   fs.writeFileSync(path.join(dir, 'scored.json'), JSON.stringify(scored, null, 2) + '\n');
 
   // summary
-  const names = { c1: 'Current role', c3: 'Tools/years', c4: 'AI experience', c5: 'AI-generated', c6: 'Spelling', c7: 'Grammar', c8: 'STAR/PAR bullets', c9: 'University', c10: 'Qualifications', c12: 'Tenure' };
+  const names = { c1: 'Current role', c3: 'Tools/years', c4: 'AI experience', c5: 'AI-generated', c6: 'Spelling', c7: 'Grammar', c8: 'STAR/PAR bullets', c10: 'Qualifications', c12: 'Tenure' };
   console.log('\n' + assessment.meta.candidate + ' -> ' + assessment.meta.role_title + ', ' + assessment.meta.hiring_company);
   console.log('ID   Criterion          Score  Weight  Conf    ');
   Object.keys(names).forEach((id) => {
@@ -106,7 +108,9 @@ function main() {
   console.log('c2   Strictness: Core ' + f1(result.core) + ' -> adjusted ' + f1(result.adjusted) + ' (' + st.quadrant + ', gamma ' + st.gamma + ')');
   const c14 = result.c14;
   if (result.package) console.log(result.package.line);
-  console.log('Bonus ' + sgn(result.bonus.total) + ' (c11 ' + sgn(result.bonus.c11) + ', c13 ' + sgn(result.bonus.c13) + ', c14 ' + sgn(result.bonus.c14) + ')  Total ' + f1(result.total) + '  Band: ' + result.band);
+  console.log('Bonus ' + sgn(result.bonus.total) + ' (c11 ' + sgn(result.bonus.c11) + ', c14 ' + sgn(result.bonus.c14) + ', c15 ' + sgn(result.bonus.c15) + ')  Total ' + f1(result.total) + '  Band: ' + result.band);
+  console.log('Elite c15 ' + sgn(result.c15.total) + ' (' + (result.c15.items.length ? result.c15.items.map((i) => i.working).join('; ') : 'no indicators') + ')');
+  result.c15.notes.forEach((n) => console.log('  note: ' + n));
   console.log('Screening c14 ' + sgn(c14.total) + ' (' + c14.items.map((i) => i.key + ' ' + sgn(i.points)).join(', ') + ')');
   c14.notes.forEach((n) => console.log('  note: ' + n));
   const fl = c14.flags;
@@ -114,7 +118,7 @@ function main() {
     console.log('FLAG date ranges a parser may not read (use "Apr 2022 - Apr 2023"):');
     fl.ats_dates.forEach((x) => console.log('  line ' + x.line + ': ' + x.text));
   }
-  if (fl.education_blank) console.log('FLAG education has no institution (c9)');
+  if (fl.education_blank) console.log('FLAG education has no institution (c15)');
   console.log('FLAG application form checklist: ' + fl.form_checklist.map((x) => x.split(':')[0].toLowerCase()).join('; '));
   console.log('Quotes: ' + ver.quotes_total + ' checked, ' + ver.quotes_unverified + ' unverified; sources rejected: ' + ver.sources_rejected.length);
   ver.unverified.forEach((u) => console.log('  UNVERIFIED ' + u.path + ' (' + u.context + '): ' + JSON.stringify(u.text)));

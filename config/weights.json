@@ -1,24 +1,22 @@
 {
-  "_comment": "Default weights: c1 is 50, and the nine other scored criteria (c3-c10, c12) share 50 equally (50/9 each). c2 is a strictness modifier, not a weight. Copy to config/weights.local.json to customise (gitignored). Core weights are relative and normalised at scoring time. Bonus points (c11, c13) are added after the strictness adjustment, and the total is clamped to 0-100.",
+  "_comment": "Default weights: c1 is 50, and the eight other scored criteria (c3-c8, c10, c12) share 50 equally (6.25 each). c2 is a strictness modifier, not a weight. Copy to config/weights.local.json to customise (gitignored). Core weights are relative and normalised at scoring time. Bonus points (c11, c14, c15) are added after the strictness adjustment, and the total is clamped to 0-100.",
   "core": {
     "c1_current_role": 50,
-    "c3_tools_years": 5.5555556,
-    "c4_ai_experience": 5.5555556,
-    "c5_ai_generated": 5.5555556,
-    "c6_spelling": 5.5555556,
-    "c7_grammar": 5.5555556,
-    "c8_star_par": 5.5555556,
-    "c9_top_university": 5.5555556,
-    "c10_qualifications": 5.5555556,
-    "c12_tenure": 5.5555556
+    "c3_tools_years": 6.25,
+    "c4_ai_experience": 6.25,
+    "c5_ai_generated": 6.25,
+    "c6_spelling": 6.25,
+    "c7_grammar": 6.25,
+    "c8_star_par": 6.25,
+    "c10_qualifications": 6.25,
+    "c12_tenure": 6.25
   },
   "c1_subweights": {
     "title": 1,
     "headline": 0.25,
     "same_industry": 1,
     "competitor": 1,
-    "supplier": 1,
-    "top_firm": 1
+    "supplier": 1
   },
   "c1_title_levels": {
     "exact": 100,
@@ -35,13 +33,6 @@
     "full": 1,
     "partial": 0.5,
     "none": 0
-  },
-  "c9_tiers": {
-    "oxbridge": 100,
-    "ivy_league": 100,
-    "russell_group": 80,
-    "similar_top": 60,
-    "other": 0
   },
   "c10_levels": {
     "met": 1,
@@ -70,10 +61,7 @@
         "medium": 1,
         "high": 1.25
       }
-    },
-    "c13_consulting_top_in_industry": 3,
-    "c13_consulting_related_to_jd": 3,
-    "c13_cap": 10
+    }
   },
   "c2_strictness": {
     "cash_cow": 1.0,
@@ -109,5 +97,34 @@
     "conflict_points": -3,
     "cap_min": -15,
     "cap_max": 10
+  },
+  "c15": {
+    "points": {
+      "state_honour": 6,
+      "founder_exit": 6,
+      "university": {
+        "oxbridge": 5,
+        "ivy_league": 5,
+        "russell_group": 4,
+        "similar_top": 3
+      },
+      "elite_scholarship": 5,
+      "elite_employer": 5,
+      "top_consultancy": 6,
+      "fellowship_or_charter": 4,
+      "bestselling_author": 4,
+      "national_award": 3,
+      "founder_backing": 3,
+      "board_seat": 3,
+      "major_keynote": 2,
+      "patents_or_papers": 2,
+      "national_sport_or_commission": 2
+    },
+    "cap": 15,
+    "diminishing": 0.6,
+    "relevance": 0.5,
+    "unverified": 0.5,
+    "half_life_years": 0,
+    "strictness_coupling": false
   }
 }
